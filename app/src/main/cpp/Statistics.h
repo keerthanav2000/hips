@@ -1,21 +1,14 @@
 #ifndef STATISTICS_H
 #define STATISTICS_H
 
+#include <cstdint>
 #include "llama.h"
 
-/**
- * Class that represents statistical functions.
- */
 class Statistics {
 public:
-    /**
-     * Function to normalize logits to probabilities.
-     *
-     * @param logits An array of logits.
-     * @param model Memory address of the LLM.
-     * @return The array of probabilities.
-     */
-    static double* softmax(float* logits, const llama_model* model);
+    static float logSumExp(const float* logits, int32_t n_vocab);
+    static float* softmax(float* logits, const llama_model* model);
+    static float calculateEntropy(const float* probabilities, int32_t n_vocab);
 };
 
 #endif

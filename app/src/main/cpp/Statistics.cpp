@@ -1,24 +1,39 @@
 #include <cmath>
+#include <algorithm>
+#include <vector>
 #include "Statistics.h"
 #include "LlamaCpp.h"
 
-double* Statistics::softmax(float* logits, const llama_model* model) {
-    // Use "new" to allocate memory on heap instead of stack, so probabilities aren't deleted when function exits
-    // => Now we need to call the destructor after softmax is used (default array destructor, no need to implement one)
-    auto probabilities = new double[LlamaCpp::getVocabSize(model)];
-
-    // Calculate normalization factor for denominator
-    // Uses exponential function since it's strictly monotonous in growth, doesn't change ranking of tokens
-    double denominator = 0.0;
-
-    for (int32_t token = 0; token < LlamaCpp::getVocabSize(model); token++) {
-        denominator += exp(logits[token]);
+float Statistics::logSumExp(const float* logits, int32_t n_vocab) {
+    float max_logit = -INFINITY;
+    for (int32_t i = 0; i < n_vocab; ++i) {
+        if (logits[i] > max_logit) max_logit = logits[i];
     }
+    if (max_logit == -INFINITY) return 0.0f;
 
-    // Normalize logits to probabilities
-    for (int32_t token = 0; token < LlamaCpp::getVocabSize(model); token++) {
-        probabilities[token] = exp(logits[token]) / denominator;
+    double sum = 0.0;
+    for (int32_t i = 0; i < n_vocab; ++i) {
+        sum += exp(static_cast<double>(logits[i]) - max_logit);
     }
+    return max_logit + static_cast<float>(log(sum));
+}
 
-    return probabilities;
+float* Statistics::softmax(float* logits, const llama_model* model) {
+    int32_t n_vocab = LlamaCpp::getVocabSize(model);
+    float lse = logSumExp(logits, n_vocab);
+
+    for (int32_t token = 0; token < n_vocab; token++) {
+        logits[token] = exp(static_cast<double>(logits[token]) - lse);
+    }
+    return logits;
+}
+
+float Statistics::calculateEntropy(const float* probabilities, int32_t n_vocab) {
+    double entropy = 0.0;
+    for (int32_t i = 0; i < n_vocab; ++i) {
+        if (probabilities[i] > 1e-12) {
+            entropy -= static_cast<double>(probabilities[i]) * (log(static_cast<double>(probabilities[i])) / log(2.0));
+        }
+    }
+    return static_cast<float>(entropy);
 }
