@@ -203,7 +203,6 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_org_vonderheidt_hips_utils_Huffman_
         llama_token targetToken = coverTextTokens[i];
         if (LlamaCpp::isEndOfGeneration(targetToken, model)) break;
 
-        // Search in SHUFFLED tree
         auto rank_it = std::find_if(topKProbs.begin(), topKProbs.end(), [targetToken](const auto& pair) {
             return pair.first == targetToken;
         });
