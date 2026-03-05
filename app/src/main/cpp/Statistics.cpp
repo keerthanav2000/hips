@@ -23,7 +23,7 @@ float* Statistics::softmax(float* logits, const llama_model* model) {
     float lse = logSumExp(logits, n_vocab);
 
     for (int32_t token = 0; token < n_vocab; token++) {
-        logits[token] = exp(static_cast<double>(logits[token]) - lse);
+        logits[token] = static_cast<float>(exp(static_cast<double>(logits[token]) - lse));
     }
     return logits;
 }

@@ -16,6 +16,7 @@ class HuffmanCoding {
 private:
     std::priority_queue<HuffmanNode*, std::vector<HuffmanNode*>, Compare> huffmanTree;
     void generateHuffmanCodesRecursively(HuffmanNode* currentHuffmanNode, std::vector<bool> currentHuffmanCode);
+    void deleteHuffmanNode(HuffmanNode* huffmanNode);
 
 public:
     std::unordered_map<llama_token, std::vector<bool>> huffmanCodes;
